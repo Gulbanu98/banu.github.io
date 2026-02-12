@@ -1,95 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Симулятор оператора ЖКХ</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+}
+
+#chat {
+    width: 500px;
+    height: 600px;
+    margin: 40px auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+#messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.message {
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    max-width: 80%;
+}
+
+.operator {
+    background: #d1e7ff;
+    align-self: flex-end;
+}
+
+.client {
+    background: #f1f1f1;
+    align-self: flex-start;
+}
+
+.system {
+    text-align: center;
+    font-size: 12px;
+    color: gray;
+}
+
+#inputArea {
+    display: flex;
+    border-top: 1px solid #ddd;
+}
+
+#userInput {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    font-size: 14px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    background: #4CAF50;
+    color: white;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div id="chat">
+    <div id="messages"></div>
+    <div id="inputArea">
+        <input type="text" id="userInput" placeholder="Введите ответ оператора...">
+        <button onclick="handleSend()">Отправить</button>
+    </div>
+</div>
+
+<script>
+
+let currentState = "start";
+
 let context = {
-    problem: null,
+    accountNumber: null,
     address: null,
-    account: null
+    ownerName: null,
+    questionCount: 0
 };
 
-function detectIntent(text) {
-    if (text.includes("вода")) return "water";
-    if (text.includes("отоплен")) return "heating";
-    if (text.includes("свет") || text.includes("электр")) return "electricity";
-    if (text.includes("плат")  text.includes("деньг")  text.includes("квитан")) return "billing";
-    if (text.includes("показан")) return "meters";
-    return "unknown";
+const messagesContainer = document.getElementById("messages");
+
+function addMessage(text, type) {
+    const div = document.createElement("div");
+    div.className = "message " + type;
+    div.innerText = text;
+    messagesContainer.appendChild(div);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function clientReply(text, delay = 1000) {
+    setTimeout(() => {
+        addMessage(text, "client");
+    }, delay);
 }
 
 function handleSend() {
-    const input = document.getElementById('userInput');
-    const rawText = input.value.trim();
-    const text = rawText.toLowerCase();
-    if (!text) return;
+    const input = document.getElementById("userInput");
+    const operatorText = input.value.trim();
+    if (!operatorText) return;
 
-    addMessage(rawText, 'operator');
-    input.value = '';
-
-    // завершение диалога
-    if (
-        text.includes("до свидания") ||
-        text.includes("всего доброго") ||
-        text.includes("спасибо")
-    ) {
-        addMessage("Благодарю за обращение. Хорошего дня!", 'client');
-        addMessage("Диалог завершен.", 'system');
-        isChatActive = false;
-        return;
-    }
+    addMessage(operatorText, "operator");
+    input.value = "";
 
     setTimeout(() => {
 
         switch (currentState) {
 
             case "start":
-                const intent = detectIntent(text);
-
-                if (intent === "unknown") {
-                    addMessage("Пожалуйста, уточните, у вас проблема с водой, отоплением, электричеством или начислениями?", 'client');
-                } else {
-                    context.problem = intent;
-                    currentState = "askAddress";
-                    addMessage("Уточните, пожалуйста, адрес дома.", 'client');
-                }
+                clientReply("Здравствуйте. Подскажите, пожалуйста, по начислениям за коммунальные услуги.");
+                currentState = "describeProblem";
                 break;
 
-            case "askAddress":
-                context.address = rawText;
-                currentState = "askAccount";
-                addMessage("Назовите, пожалуйста, номер лицевого счета.", 'client');
+            case "describeProblem":
+                clientReply("В квитанции указана сумма больше, чем обычно.");
+                currentState = "provideAccount";
                 break;
 
-            case "askAccount":
-                context.account = rawText;
-                currentState = "solution";
+            case "provideAccount":
+                clientReply("Номер лицевого счета 12345678.");
+                context.accountNumber = "12345678";
+                currentState = "identify";
+                break;
 
-                let solutionText = "";
+            case "identify":
+                clientReply("Собственник — Иванов Иван Иванович.");
+                context.ownerName = "Иванов Иван Иванович";
+                currentState = "hold";
+                break;
 
-                if (context.problem === "water") {
-                    solutionText = "По вашему адресу возможны аварийные работы. Информация передана в службу.";
-                }
-                if (context.problem === "heating") {
-                    solutionText = "Зарегистрирована заявка на проверку отопления.";
-                }
-                if (context.problem === "electricity") {
-                    solutionText = "Передаю информацию в аварийную электрослужбу.";
-                }
-                if (context.problem === "billing") {
-                    solutionText = "Создан запрос на проверку начислений.";
-                }
+            case "hold":
+                clientReply("Хорошо, ожидаю.");
 
-                addMessage(solutionText, 'client');
-                addMessage("Могу ли я вам чем-то еще помочь?", 'client');
+                setTimeout(() => {
+                    addMessage("Спасибо за ожидание.", "client");
+                    addMessage("Проверила информацию. Действительно, была техническая ошибка в начислении. В ближайшее время будет произведён перерасчёт.", "client");
+                    currentState = "afterSolution";
+                }, 3000);
+
+                break;
+
+            case "afterSolution":
+                clientReply("Спасибо. У меня ещё один вопрос.");
+                currentState = "secondQuestion";
+                break;
+
+            case "secondQuestion":
+                clientReply("Я передавала показания счётчиков вчера, они учтены?");
+                currentState = "closing";
+                break;
+
+            case "closing":
+                clientReply("Благодарю за консультацию. Больше вопросов нет.");
                 currentState = "final";
                 break;
 
             case "final":
-                addMessage("Если вопросов больше нет, благодарю за обращение.", 'client');
+                clientReply("До свидания.");
                 break;
-
-            default:
-                addMessage("Пожалуйста, уточните ваш вопрос.", 'client');
         }
 
     }, 800);
 }
+</body>
+</html>
+// автоматическое первое сообщение клиента
+setTimeout(() => {
+    addMessage("Добрый день.", "client");
+    currentState = "start";
+}, 1000);
+
+</script>
 
 </body>
 </html>
