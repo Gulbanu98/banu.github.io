@@ -1,130 +1,95 @@
-html
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тренажер Оператора ЖКХ</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; margin: 0; }
-        header { background: #2c3e50; color: white; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        #chat-container { flex: 1; max-width: 800px; margin: 20px auto; width: 95%; background: white; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 70%; font-size: 15px; line-height: 1.4; }
-        .client { background: #f1f2f6; align-self: flex-start; border-bottom-left-radius: 2px; color: #2f3542; }
-        .operator { background: #0084ff; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .system { align-self: center; background: #ffeaa7; font-size: 12px; padding: 5px 10px; border-radius: 5px; text-align: center; }
-        #input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
-        button { background: #0084ff; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-    </style>
-</head>
-<body>
+let context = {
+    problem: null,
+    address: null,
+    account: null
+};
 
-<header>
-    <strong>Симулятор: Клиент ЖКХ (Россия)</strong>
-    <div id="timer" style="font-size: 12px; opacity: 0.8;">Терпение клиента: 120 сек.</div>
-</header>
+function detectIntent(text) {
+    if (text.includes("вода")) return "water";
+    if (text.includes("отоплен")) return "heating";
+    if (text.includes("свет") || text.includes("электр")) return "electricity";
+    if (text.includes("плат")  text.includes("деньг")  text.includes("квитан")) return "billing";
+    if (text.includes("показан")) return "meters";
+    return "unknown";
+}
 
-<div id="chat-container">
-    <div id="messages">
-        <div class="msg system">Клиент подключился к чату</div>
-    </div>
-    <div id="input-area">
-        <input type="text" id="userInput" placeholder="Введите ответ оператора...">
-        <button onclick="handleSend()">Отправить</button>
-    </div>
-</div>
+function handleSend() {
+    const input = document.getElementById('userInput');
+    const rawText = input.value.trim();
+    const text = rawText.toLowerCase();
+    if (!text) return;
 
-<script>
-    const messagesContainer = document.getElementById('messages');
-    const timerDisplay = document.getElementById('timer');
-    let timeLeft = 120;
-    let isChatActive = true;
-    let currentState = "greeting";
+    addMessage(rawText, 'operator');
+    input.value = '';
 
-    const script = {
-        greeting: {
-            keywords: ["здравствуй", "привет", "добрый", "слушаю", "чем могу", "здравствуйте", "день", "вас"],
-            next: "issue",
-            botReply: "Здравствуйте! У меня в квитанции за прошлый месяц сумма за отопление в два раза больше, чем обычно. Почему так? Город Казань."
-        },
-        issue: {
-            keywords: ["номер", "лс", "счет", "адрес", "посмотрю", "уточните", "данные", "информацию", "минуту", "оставайтесь"],
-            next: "waiting",
-            botReply: "Мой адрес: ул. Пушкина, дом 10, кв. 45. Номер лицевого счета 123456789. Посмотрите быстрее, а то я уже переплатил!"
-        },
-        waiting: {
-            keywords: ["переплата", "перерасчет", "ошибка", "тариф", "норматив", "учтется", "увидела", "посмотрела", "деньги", "услуги"],
-            next: "thanks",
-            botReply: "А, понятно. Значит, в следующем месяце сделаете вычет? А что мне делать с пени, которые уже начислили?"
-        },
-        thanks: {
-            keywords: ["списаны", "уберем", "пени", "автоматически", "вычтем", "аннулируем", "всего доброго", "до свидания"],
-            next: "final",
-            botReply: "Хорошо, надеюсь на это. Больше вопросов нет."
-        }
-    };
-
-    const countdown = setInterval(() => {
-        if (timeLeft > 0 && isChatActive) {
-            timeLeft--;
-            timerDisplay.innerText = `Терпение клиента: ${timeLeft} сек.`;
-        } else if (timeLeft === 0 && isChatActive) {
-            addMessage("ПОЧЕМУ ВЫ МОЛЧИТЕ? Я буду жаловаться в Жилищную инспекцию! Вы издеваетесь?!", 'client');
-            addMessage("Тест провален (время вышло), но вы можете продолжить обучение.", 'system');
-            timeLeft = -1; 
-        }
-    }, 1000);
-
-    function addMessage(text, type) {
-        const div = document.createElement('div');
-        div.className = `msg ${type}`;
-        div.innerText = text;
-        messagesContainer.appendChild(div);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    // завершение диалога
+    if (
+        text.includes("до свидания") ||
+        text.includes("всего доброго") ||
+        text.includes("спасибо")
+    ) {
+        addMessage("Благодарю за обращение. Хорошего дня!", 'client');
+        addMessage("Диалог завершен.", 'system');
+        isChatActive = false;
+        return;
     }
 
-    function handleSend() {
-        const input = document.getElementById('userInput');
-        const text = input.value.trim().toLowerCase();
-        if (!text) return;
+    setTimeout(() => {
 
-        addMessage(input.value, 'operator');
-        input.value = '';
+        switch (currentState) {
 
-        if (currentState === "final" || text.includes("всего доброго") || text.includes("до свидания")) {
-            isChatActive = false;
-            addMessage("Спасибо за помощь, до свидания!", 'client');
-            addMessage("Диалог завершен.", 'system');
-            clearInterval(countdown);
-            return;
-        }
+            case "start":
+                const intent = detectIntent(text);
 
-        setTimeout(() => {
-            const step = script[currentState];
-            let found = false;
-
-            if (step && step.keywords) {
-                for (let word of step.keywords) {
-                    if (text.includes(word)) {
-                        currentState = step.next;
-                        addMessage(script[currentState].botReply, 'client');
-                        found = true;
-                        break;
-                    }
+                if (intent === "unknown") {
+                    addMessage("Пожалуйста, уточните, у вас проблема с водой, отоплением, электричеством или начислениями?", 'client');
+                } else {
+                    context.problem = intent;
+                    currentState = "askAddress";
+                    addMessage("Уточните, пожалуйста, адрес дома.", 'client');
                 }
-            }
+                break;
 
-            if (!found && isChatActive) {
-                addMessage("Вы меня не слышите? Я спрашиваю про свои деньги и услуги ЖКХ! Ответьте по существу.", 'client');
-                if (timeLeft > 0) timeLeft -= 15; 
-            }
-        }, 800);
-    }
+            case "askAddress":
+                context.address = rawText;
+                currentState = "askAccount";
+                addMessage("Назовите, пожалуйста, номер лицевого счета.", 'client');
+                break;
 
-    setTimeout(() => addMessage("Алло! Тут кто-нибудь отвечает?", 'client'), 500);
-</script>
+            case "askAccount":
+                context.account = rawText;
+                currentState = "solution";
+
+                let solutionText = "";
+
+                if (context.problem === "water") {
+                    solutionText = "По вашему адресу возможны аварийные работы. Информация передана в службу.";
+                }
+                if (context.problem === "heating") {
+                    solutionText = "Зарегистрирована заявка на проверку отопления.";
+                }
+                if (context.problem === "electricity") {
+                    solutionText = "Передаю информацию в аварийную электрослужбу.";
+                }
+                if (context.problem === "billing") {
+                    solutionText = "Создан запрос на проверку начислений.";
+                }
+
+                addMessage(solutionText, 'client');
+                addMessage("Могу ли я вам чем-то еще помочь?", 'client');
+                currentState = "final";
+                break;
+
+            case "final":
+                addMessage("Если вопросов больше нет, благодарю за обращение.", 'client');
+                break;
+
+            default:
+                addMessage("Пожалуйста, уточните ваш вопрос.", 'client');
+        }
+
+    }, 800);
+}
 
 </body>
 </html>
