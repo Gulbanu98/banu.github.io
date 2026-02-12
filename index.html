@@ -6,74 +6,139 @@ html
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тренажер Оператора ЖКХ</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; margin: 0; }
         header { background: #2c3e50; color: white; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        #chat-container { flex: 1; max-width: 600px; margin: 20px auto; width: 95%; background: white; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; }
-        .client { background: #e1f5fe; align-self: flex-start; border-bottom-left-radius: 2px; color: #01579b; }
+        #chat-container { flex: 1; max-width: 800px; margin: 20px auto; width: 95%; background: white; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 70%; font-size: 15px; line-height: 1.4; position: relative; }
+        .client { background: #f1f2f6; align-self: flex-start; border-bottom-left-radius: 2px; color: #2f3542; }
         .operator { background: #0084ff; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-
-        .input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
+        .system { align-self: center; background: #ffeaa7; font-size: 12px; padding: 5px 10px; border-radius: 5px; }
+        #input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
         button { background: #0084ff; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0073e6; }
+        button:hover { background: #0077e6; }
     </style>
 </head>
 <body>
 
 <header>
-    <h2>Симулятор: Обращения по ЖКХ</h2>
-    <small>Роль: Оператор поддержки</small>
+    <strong>Симулятор: Клиент ЖКХ (Россия)</strong>
+    <div id="timer" style="font-size: 12px; opacity: 0.8;">Терпение клиента: 120 сек.</div>
 </header>
 
 <div id="chat-container">
     <div id="messages">
-        <div class="msg client">Здравствуйте! Я по поводу квитанции. Почему у меня за отопление сумма в два раза больше, чем в прошлом месяце?!</div>
+        <div class="msg system">Клиент подключился к чату</div>
     </div>
-    <div class="input-area">
-        <input type="text" id="userInput" placeholder="Введите ваш ответ..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()">Отправить</button>
+    <div id="input-area">
+        <input type="text" id="userInput" placeholder="Введите ответ оператора...">
+        <button onclick="handleSend()">Отправить</button>
     </div>
 </div>
 
 <script>
-    const messagesDiv = document.getElementById('messages');
-    const input = document.getElementById('userInput');
+    const messagesContainer = document.getElementById('messages');
+    const timerDisplay = document.getElementById('timer');
+    let timeLeft = 120; // 2 минуты
+    let isChatActive = true;
+    let currentState = "greeting";
 
-    // База фраз "клиента"
-    const clientPhrases = [
-        "У нас в подъезде лампочка перегорела уже неделю, когда замените?",
-        "Опять горячей воды нет! Вы предупреждали? Я ничего не видел!",
-        "В квитанции какая-то ошибка по кап-ремонту. Куда мне жаловаться?",
-        "Соседи сверху заливают, срочно пришлите аварийку!",
-        "А можно ли подать показания счетчиков через этот чат?"
-    ];
+    // Сценарий диалога
+    const script = {
+        greeting: {
+            keywords: ["здравствуй", "привет", "добрый", "слушаю"],
+            next: "issue",
+            botReply: "Здравствуйте! У меня в квитанции за прошлый месяц сумма за отопление в два раза больше, чем обычно. Почему так? Город Казань."
+        },
+        issue: {
+            keywords: ["проверю", "номер", "лс", "счет", "адрес", "посмотрю"],
+            next: "waiting",
+            botReply: "Мой адрес: ул. Пушкина, дом 10, кв. 45. Номер лицевого счета 123456789. Посмотрите быстрее, а то я уже переплатил!"
+        },
+        waiting: {
+            keywords: ["перерасчет", "ошибка", "норматив", "тариф"],
+            next: "thanks",
+            botReply: "А, понятно. Значит, в следующем месяце сделаете вычет? А что мне делать с пени, которые уже начислили?"
+        },
+        thanks: {
+            keywords: ["списаны", "уберем", "пени", "автоматически"],
+            next: "final",
+            botReply: "Хорошо, надеюсь на это. У вас всё время какие-то путаницы с ГИС ЖКХ. Больше вопросов нет."
+        },
+        angry: "ПОЧЕМУ ВЫ МОЛЧИТЕ? Я буду жаловаться в Жилищную инспекцию! Вы издеваетесь?!",
+        finished: "Диалог завершен. Оператор успешно справился."
+    };
+
+    // Таймер злости
+    const countdown = setInterval(() => {
+        if (!isChatActive) return;
+        timeLeft--;
+        timerDisplay.innerText = `Терпение клиента: ${timeLeft} сек.`;
+
+        if (timeLeft <= 0) {
+            isChatActive = false;
+            addMessage(script.angry, 'client');
+            addMessage("Клиент отключился в ярости. Тест провален.", 'system');
+            clearInterval(countdown);
+        }
+    }, 1000);
 
     function addMessage(text, type) {
         const div = document.createElement('div');
-        div.className = 'msg ' + type;
-        div.textContent = text;
-        messagesDiv.appendChild(div);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        div.className = `msg ${type}`;
+        div.innerText = text;
+        messagesContainer.appendChild(div);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    function sendMessage() {
-        const text = input.value.trim();
+    function handleSend() {
+        if (!isChatActive) return;
+        const input = document.getElementById('userInput');
+        const text = input.value.trim().toLowerCase();
         if (!text) return;
 
-        addMessage(text, 'operator');
+        addMessage(input.value, 'operator');
         input.value = '';
 
-        // Имитация "печатает..." и случайного ответа клиента через 1.5 сек
+        // Проверка завершения
+        if (currentState === "final" && (text.includes("всего доброго") || text.includes("до свидания") || text.includes("завершаю"))) {
+            isChatActive = false;
+            addMessage("Спасибо за помощь, до свидания!", 'client');
+            addMessage(script.finished, 'system');
+            clearInterval(countdown);
+            return;
+        }
+
+        // Логика цепочки
         setTimeout(() => {
-            const randomPhrase = clientPhrases[Math.floor(Math.random() * clientPhrases.length)];
-            addMessage(randomPhrase, 'client');
-        }, 1500);
+            const step = script[currentState];
+            let found = false;
+
+            if (step && step.keywords) {
+                for (let word of step.keywords) {
+                    if (text.includes(word)) {
+                        currentState = step.next;
+                        addMessage(script[currentState].botReply, 'client');
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!found && isChatActive) {
+                addMessage("Вы меня не слышите? Я спрашиваю про свои деньги и услуги ЖКХ!", 'client');
+                timeLeft -= 10; // Штраф за непонимание
+            }
+        }, 1000);
     }
+
+    // Первый вопрос от клиента
+    setTimeout(() => addMessage("Алло! Тут кто-нибудь отвечает?", 'client'), 500);
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
