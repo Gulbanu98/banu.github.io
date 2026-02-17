@@ -1,178 +1,251 @@
-html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой Сайт на GitHub</title>
-    <style>
-        /* Основные стили */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            line-height: 1.6;
-            color: #333;
-            scroll-behavior: smooth;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Энергосбыт — Панель оператора</title>
 
-        /* Навигация */
-        nav {
-            background: #2d3436;
-            color: white;
-            padding: 1rem;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-        }
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f2f6fb;
+}
 
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin: 0 15px;
-            font-weight: bold;
-            transition: color 0.3s;
-        }
+/* Верхняя панель */
+.topbar {
+    background: #005baa;
+    color: white;
+    padding: 15px 30px;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+}
 
-        nav a:hover {
-            color: #0984e3;
-        }
+/* Основной контейнер */
+.dashboard {
+    display: flex;
+    height: calc(100vh - 55px);
+}
 
-        /* Главный блок (Hero) */
-        header {
-            height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
-                        url('https://images.unsplash.com');
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            text-align: center;
-            padding: 0 20px;
-        }
+/* Левая панель */
+.sidebar {
+    width: 250px;
+    background: white;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+}
 
-        .btn {
-            background: #0984e3;
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 25px;
-            font-size: 1.2rem;
-            transition: transform 0.3s, background 0.3s;
-            margin-top: 20px;
-            display: inline-block;
-        }
+.sidebar h3 {
+    color: #005baa;
+}
 
-        .btn:hover {
-            background: #74b9ff;
-            transform: scale(1.05);
-        }
+.sidebar button {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #005baa;
+    color: white;
+    cursor: pointer;
+}
 
-        /* Секции контента */
-        section {
-            padding: 100px 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
+.sidebar button:hover {
+    background: #0077e6;
+}
 
-        #about { background: #f9f9f9; }
+/* Чат */
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
 
-        footer {
-            background: #2d3436;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-    </style>
+.chat-header {
+    padding: 15px;
+    background: #e9f2fb;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+}
+
+.chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 70%;
+}
+
+.client {
+    background: #dfefff;
+    align-self: flex-start;
+}
+
+.operator {
+    background: #005baa;
+    color: white;
+    align-self: flex-end;
+}
+
+.chat-input {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    background: white;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.chat-input button {
+    margin-left: 10px;
+    padding: 10px 20px;
+    border: none;
+    background: #005baa;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-    <nav>
-        <a href="#home">Главная</a>
-        <a href="#about">Обо мне</a>
-        <a href="#contact">Контакты</a>
-    </nav>
+<div class="topbar">
+⚡ Энергосбыт — Симулятор оператора
+</div>
 
-    <header id="home">
-        <h1>Добро пожаловать на мой сайт!</h1>
-        <p>Создан с помощью нейросети и GitHub Pages</p>
-        <a href="#about" class="btn">Узнать больше</a>
-    </header>
+<div class="dashboard">
 
-    <section id="about">
-        <h2>Обо мне</h2>
-        <p>Привет! Это мой первый проект, размещенный на GitHub. Здесь я буду делиться своими идеями и наработками.</p>
-    </section>
+<div class="sidebar">
+<h3>Обращения</h3>
+<button onclick="acceptChat()">📥 Принять чат</button>
+<button onclick="resetChat()">🔄 Новый диалог</button>
+</div>
 
-    <section id="contact">
-        <h2>Контакты</h2>
-        <p>Свяжитесь со мной через GitHub или социальные сети.</p>
-        <a href="https://github.com" target="_blank" class="btn" style="background: #2d3436;">Мой GitHub</a>
-    </section>
+<div class="chat-area">
+<div class="chat-header">Клиент онлайн</div>
+<div class="chat-box" id="chatBox"></div>
 
-    <footer>
-        <p>&copy; 2024 Мой Сайт. Сделано с любовью.</p>
-    </footer> 
-    <!-- Виджет чата -->
-    <div id="chat-container" style="position: fixed; bottom: 20px; right: 20px; width: 300px; background: white; border: 1px solid #ccc; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; font-family: sans-serif; z-index: 2000;">
-        <div style="background: #0984e3; color: white; padding: 10px; font-weight: bold;">Чат-помощник</div>
-        <div id="chat-box" style="height: 250px; overflow-y: auto; padding: 10px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px; background: #fff;"></div>
-        <div style="display: flex; border-top: 1px solid #eee;">
-            <input type="text" id="user-input" placeholder="Напишите привет..." style="flex: 1; border: none; padding: 10px; outline: none;">
-            <button onclick="sendMessage()" style="background: #0984e3; color: white; border: none; padding: 10px; cursor: pointer;">➤</button>
-        </div>
-    </div>
-    html
-    <script>
-        const chatBox = document.getElementById('chat-box');
-        const userInput = document.getElementById('user-input');
+<div class="chat-input">
+<input type="text" id="userInput" placeholder="Введите сообщение...">
+<button onclick="sendMessage()">Отправить</button>
+</div>
+</div>
 
-        function addMessage(text, isUser = false) {
-            const msg = document.createElement('div');
-            msg.innerText = text;
-            msg.style.padding = '8px 12px';
-            msg.style.borderRadius = '15px';
-            msg.style.maxWidth = '85%';
-            msg.style.marginBottom = '5px';
-            msg.style.alignSelf = isUser ? 'flex-end' : 'flex-start';
-            msg.style.background = isUser ? '#0984e3' : '#e9ecef';
-            msg.style.color = isUser ? 'white' : 'black';
-            chatBox.appendChild(msg);
-            chatBox.scrollTop = chatBox.scrollHeight;
+</div>
+
+<script>
+const chatBox = document.getElementById("chatBox");
+const userInput = document.getElementById("userInput");
+
+let dialogStage = "start";
+let problemType = null;
+
+function addMessage(text, role="client") {
+    const msg = document.createElement("div");
+    msg.classList.add("message");
+    msg.classList.add(role === "client" ? "client" : "operator");
+    msg.innerText = text;
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function acceptChat() {
+    addMessage("Здравствуйте. У меня вопрос по начислениям за электроэнергию.", "client");
+    dialogStage = "identify";
+}
+
+function resetChat() {
+    chatBox.innerHTML = "";
+    dialogStage = "start";
+    problemType = null;
+}
+
+function analyzeIntent(text) {
+    const lower = text.toLowerCase();
+
+    if (dialogStage === "identify") {
+        if (lower.includes("начис")  lower.includes("счет")  lower.includes("платеж")) {
+            problemType = "billing";
+            return "billing";
         }
-
-        function getBotResponse(text) {
-            const input = text.toLowerCase();
-            // Логика ответов:
-            if (input.includes('привет')) return 'Привет! Рад тебя видеть на моем сайте. Как дела?';
-            if (input.includes('хорошо')) return 'Это отлично! Чем я могу тебе помочь сегодня?';
-            if (input.includes('сайт')) return 'Я помогу тебе сориентироваться. Что именно интересно?';
-            if (input.includes('автор')) return 'Этот сайт создал будущий крутой разработчик!';
-            return 'Я пока только учусь, но звучит интересно! Можешь спросить про "сайт" или просто сказать "привет".';
+        if (lower.includes("счетчик") || lower.includes("показан")) {
+            problemType = "meter";
+            return "meter";
         }
+        return "clarify";
+    }
 
-        function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-            addMessage(text, true);
-            userInput.value = '';
-            setTimeout(() => {
-                addMessage(getBotResponse(text));
-            }, 600);
+    if (dialogStage === "clarify") {
+        return "details";
+    }
+
+    return "continue";
+}
+
+function generateResponse(intent) {
+
+    if (dialogStage === "identify") {
+        dialogStage = "clarify";
+        if (intent === "billing") {
+            return "Понимаю. Подскажите, пожалуйста, за какой период возникли вопросы по начислениям?";
         }
+        if (intent === "meter") {
+return "Уточните, пожалуйста, передавали ли вы последние показания счетчика?";
+        }
+        return "Уточните, пожалуйста, в чем именно возникла сложность?";
+    }
 
-        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    if (dialogStage === "clarify") {
+        dialogStage = "solution";
+        if (problemType === "billing") {
+            return "Спасибо за информацию. Я проверю корректность начислений. Возможно потребуется сверка показаний. Желаете оформить заявку на проверку?";
+        }
+        if (problemType === "meter") {
+            return "Рекомендую проверить корректность передачи показаний. Если есть сомнения — можем оформить заявку на диагностику.";
+        }
+        return "Благодарю за уточнение. Сейчас разберемся.";
+    }
 
-        // Первая фраза при загрузке
-        window.onload = () => {
-            setTimeout(() => addMessage('Привет! Я твой помощник. Напиши мне что-нибудь!'), 1000);
-        };
-    </script>
+    if (dialogStage === "solution") {
+        dialogStage = "end";
+        return "Ваша заявка принята в работу. Есть ли еще вопросы, с которыми я могу помочь?";
+    }
+
+    return "Спасибо за обращение!";
+}
+
+function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    addMessage(text, "operator");
+    userInput.value = "";
+
+    setTimeout(() => {
+        const intent = analyzeIntent(text);
+        const response = generateResponse(intent);
+        addMessage(response, "client");
+    }, 700);
+}
+
+userInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") sendMessage();
+});
+</script>
+
 </body>
 </html>
